@@ -216,6 +216,7 @@ if __name__ == '__main__':
                          'data/*.mmtf', 'data/*.mmtf.gz',
                          'data/analysis/*',
                          'data/*.gsd',
+                         'data/chainreader/*',
                         ],
           },
           install_requires=[
