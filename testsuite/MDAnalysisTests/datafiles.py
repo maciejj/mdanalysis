@@ -155,11 +155,12 @@ __all__ = [
     "legacy_DCD_c36_coords", # frames 1 and 4 read in for tip125_tric_C36.dcd using legacy DCD reader
     "GSD",
     "GRO_MEMPROT", "XTC_MEMPROT", # YiiP transporter in POPE:POPG lipids with Na+, Cl-, Zn2+ dummy model without water
-    'twoatoms_gro',
-    'twoatoms_0',
-    'twoatoms_1',
-    'twoatoms_2',
-    'twoatoms_1frame'
+    'atom_gro',
+    'atom_0',
+    'atom_1',
+    'atom_2',
+    'atom_single_frame',
+    'atom_0_dcd'
 ]
 
 from pkg_resources import resource_filename
@@ -419,11 +420,12 @@ ALIGN_UNBOUND = resource_filename(__name__, 'data/analysis/align_unbound.pdb.gz'
 GSD = resource_filename(__name__, 'data/example.gsd')
 
 # two atoms system taken from TPR to test chain readers
-twoatoms_gro = resource_filename(__name__, 'data/chainreader/twoatoms.gro')
-twoatoms_0 = resource_filename(__name__, 'data/chainreader/parts_0.xtc')
-twoatoms_1 = resource_filename(__name__, 'data/chainreader/parts_1.xtc')
-twoatoms_2 = resource_filename(__name__, 'data/chainreader/parts_2.xtc')
-twoatoms_1frame = resource_filename(__name__, 'data/chainreader/parts_0frame.xtc')
+atom_gro = resource_filename(__name__, 'data/chainreader/atom.gro')
+atom_0 = resource_filename(__name__, 'data/chainreader/parts_0.xtc')
+atom_1 = resource_filename(__name__, 'data/chainreader/parts_1.xtc')
+atom_2 = resource_filename(__name__, 'data/chainreader/parts_2.xtc')
+atom_single_frame = resource_filename(__name__, 'data/chainreader/parts_single_frame.dcd')
+atom_0_dcd = resource_filename(__name__, 'data/chainreader/parts_0.dcd')
 
 # This should be the last line: clean up namespace
 del resource_filename
