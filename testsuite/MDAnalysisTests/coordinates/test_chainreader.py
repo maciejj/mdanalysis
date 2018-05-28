@@ -35,13 +35,9 @@ from MDAnalysisTests.datafiles import (
     atom_1, atom_2, atom_single_frame, atom_0_dcd)
 
 from pkg_resources import resource_filename
-single_frames = [
-    resource_filename(__name__, '../data/chainreader/parts_sf_{}.dcd'.format(i))
-    for i in range(10)
-]
 allframes = resource_filename(__name__, '../data/chainreader/all.dcd')
-frames34 = resource_filename(__name__, '../data/chainreader/parts_34.dcd')
-frames4567 = resource_filename(__name__, '../data/chainreader/parts_4567.dcd')
+frames34 = resource_filename(__name__, '../data/chainreader/parts-34.dcd')
+frames4567 = resource_filename(__name__, '../data/chainreader/parts-4567.dcd')
 
 
 
@@ -162,8 +158,6 @@ class TestChainReaderFormats(object):
         assert universe.trajectory.n_frames == 2
 
 
-# single frame doesn't work with xtc! NEED TO ACCOUND FOR THAT IN TESTING
-
 class TestChainReaderContinuous(object):
     # description of the frame patterns to test are in comments as lists
     @pytest.fixture
@@ -195,14 +189,14 @@ class TestChainReaderContinuous(object):
         u = mda.Universe(top, trajs, continuous=True)
         assert u.trajectory.n_frames == 10
         for i, ts in enumerate(u.trajectory):
-            assert_almost_equal(i, ts.time)
+            assert_almost_equal(i, ts.time, decimal=5)
 
     # [5 6 7 8 9] [2 3 4 5 6] [0 1 2 3]
     def test_reorder(self, top, trajs):
         u = mda.Universe(top, trajs[::-1], continuous=True)
         assert u.trajectory.n_frames == 10
         for i, ts in enumerate(u.trajectory):
-            assert_almost_equal(i, ts.time)
+            assert_almost_equal(i, ts.time, decimal=5)
 
     # [0 1 2 3] [5 6 7 8 9]
     def test_missing_frame(self, top, trajs):
@@ -220,7 +214,7 @@ class TestChainReaderContinuous(object):
         u = mda.Universe(top, [atom_0, frames34, frames4567], continuous=True)
         assert u.trajectory.n_frames == 8
         for i, ts in enumerate(u.trajectory):
-            assert_almost_equal(i, ts.time)
+            assert_almost_equal(i, ts.time, decimal=5)
 
 
 @pytest.mark.parametrize('l', ([(0, 3), (3, 3), (4, 7)],

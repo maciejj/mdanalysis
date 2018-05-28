@@ -68,6 +68,31 @@ def multi_level_argsort(l):
     """
     return [el[0] for el in sorted(enumerate(l), key=lambda x: x[1])]
 
+def filter_times(times, dt):
+    print(np.unique(times))
+    # check for two because we have a start and a beginning
+    if np.unique(times).size == 2:
+        return [0, ]
+
+    used_idx = [0, ]
+    for i, (first, middle, last) in enumerate(zip(times[:-2], times[1:-1], times[2:])):
+        print(i, first, middle, last)
+        if np.abs((middle[1] - middle[0]) - dt) > 1e-7:
+            print("first_branch", middle[1] - middle[0], dt)
+            if (middle[0] <= first[1]) and (last[0] <= middle[1]):
+                used_idx.append(i + 1)
+        else:
+            if (middle[0] < first[1]) and (middle[-1] <= last[0]):
+                used_idx.append(i + 1)
+            elif (middle[0] <= first[1]) and (middle[-1] < last[0]):
+                used_idx.append(i + 1)
+    print(times)
+    if times[-2][1] < times[-1][1]:
+        used_idx.append(len(times) - 1)
+    print(used_idx)
+
+    return used_idx
+
 
 class ChainReader(base.ProtoReader):
     """Reader that concatenates multiple trajectories on the fly.
@@ -172,7 +197,13 @@ class ChainReader(base.ProtoReader):
         # calculate new start_frames to have a time continuous trajectory.
         self._continuous = continuous  # debug!
         if continuous:
-            # TODO: check for some filetype!
+            filetypes = np.unique([r.format for r in self.readers])
+            if not len(filetypes) == 1:
+                raise RuntimeError("Continuous only supported with all files "
+                                   "are from the same format. found {}".format(filetypes))
+            if np.any(n_frames == 1):
+                raise RuntimeError("Need at least two frames in every trajectory")
+
             # TODO: allow floating point precision in dt check
             dt = self._get_same('dt')
             n_frames = np.asarray(self._get('n_frames'))
@@ -184,7 +215,7 @@ class ChainReader(base.ProtoReader):
             # [0 1 2 3 4 5 6 7 8 9] [0 1 2 4]
             # to
             # [0 1 2 4] [0 1 2 3 4 5 6 7 8 9]
-            # after that sort the chain reader will work as expected
+            # after that sort the chain reader will work
             times = []
             for r in self.readers:
                 r[0]
@@ -192,10 +223,19 @@ class ChainReader(base.ProtoReader):
                 r[-1]
                 end = r.ts.time
                 times.append((start, end))
+            # sort step
             sort_idx = multi_level_argsort(times)
             self.readers = [self.readers[i] for i in sort_idx]
             self.filenames = self.filenames[sort_idx]
             self.total_times = self.dts * n_frames[sort_idx]
+
+            # filter step: remove indices if we have complete overlap
+            if len(self.readers) > 1:
+                used_idx = filter_times(np.array(times)[sort_idx], dt)
+
+                self.readers = [self.readers[i] for i in used_idx]
+                self.filenames = self.filenames[used_idx]
+                self.total_times = self.dts[used_idx] * n_frames[used_idx]
 
             # rebuild lookup table
             sf = [0, ]
