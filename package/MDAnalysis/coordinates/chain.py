@@ -58,6 +58,9 @@ from . import core
 
 def multi_level_argsort(l):
     """
+    This sorts based on the start time.
+    TODO: CHANGE FUNCTION NAME
+
     Parameters
     ----------
     l : list
@@ -66,30 +69,53 @@ def multi_level_argsort(l):
     -------
     indices
     """
-    return [el[0] for el in sorted(enumerate(l), key=lambda x: x[1])]
+    return [el[0] for el in sorted(enumerate(l), key=lambda x: x[1][0])]
+
 
 def filter_times(times, dt):
-    print(np.unique(times))
+    """Given a list of start and end times this function filters out any duplicate
+    time steps preferring the last tuple.
+
+    ((0, 3), (0, 3)) -> (1, )
+    ((0, 3), (0, 4)) -> (1, )
+    ((0, 3), (3, 4)) -> (0, 1)
+    ((0, 3), (2, 5), (4, 9)) -> (1, 2, 3)
+
+
+    Parameters
+    ----------
+    times :
+        sorted list of times
+    dt :
+        timestep between two frames
+
+    Returns
+    -------
+    indices of times to used with overlaps removed
+
+    """
     # check for two because we have a start and a beginning
     if np.unique(times).size == 2:
-        return [0, ]
+        return [len(times) - 1, ]
 
-    used_idx = [0, ]
+    # special case first times are equal
+    if not np.allclose(times[0][0], times[1][0]):
+        used_idx = [0, ]
+        offset = 1
+    else:
+        used_idx = [1, ]
+        offset = 2
+
     for i, (first, middle, last) in enumerate(zip(times[:-2], times[1:-1], times[2:])):
-        print(i, first, middle, last)
-        if np.abs((middle[1] - middle[0]) - dt) > 1e-7:
-            print("first_branch", middle[1] - middle[0], dt)
+        if not np.allclose(middle[1] - middle[0], dt):
             if (middle[0] <= first[1]) and (last[0] <= middle[1]):
-                used_idx.append(i + 1)
-        else:
-            if (middle[0] < first[1]) and (middle[-1] <= last[0]):
-                used_idx.append(i + 1)
-            elif (middle[0] <= first[1]) and (middle[-1] < last[0]):
-                used_idx.append(i + 1)
-    print(times)
-    if times[-2][1] < times[-1][1]:
-        used_idx.append(len(times) - 1)
-    print(used_idx)
+                used_idx.append(i + offset)
+        elif (middle[0] <= first[1]):
+            used_idx.append(i + offset)
+
+    # take care of first special case
+    if len(times) > 2 and (times[-2][1] <= times[-1][1]):
+        used_idx.append(len(times) - (2-offset))
 
     return used_idx
 

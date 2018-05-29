@@ -27,7 +27,7 @@ import numpy as np
 
 import pytest
 
-from numpy.testing import (assert_equal, assert_almost_equal, assert_array_almost_equal)
+from numpy.testing import (assert_equal, assert_almost_equal, assert_array_almost_equal, assert_array_equal)
 
 import MDAnalysis as mda
 from MDAnalysisTests.datafiles import (
@@ -172,7 +172,7 @@ class TestChainReaderContinuous(object):
     def test_last_frames(self, top):
         # TODO check only one trajectory is used
         u = mda.Universe(top, [allframes, atom_0], continuous=True)
-        assert u.trajectory.n_frames == 10
+        assert u.trajectory.n_frames == 4
         for i, ts in enumerate(u.trajectory):
             assert_almost_equal(i, ts.time, decimal=4)
 
@@ -217,10 +217,19 @@ class TestChainReaderContinuous(object):
             assert_almost_equal(i, ts.time, decimal=5)
 
 
-@pytest.mark.parametrize('l', ([(0, 3), (3, 3), (4, 7)],
-                               [(0, 9), (0, 4)],
-                               [(0, 3), (2, 2), (3, 3), (2, 6), (5, 9)]))
-def test_multilevel_arg_sort(l):
+@pytest.mark.parametrize('l, ref', ([((0, 3), (3, 3), (4, 7)), (0, 1, 2)],
+                                    [((0, 9), (0, 4)), (0, 1)],
+                                    [((0, 3), (2, 2), (3, 3), (2, 6), (5, 9)), (0, 1, 3, 2, 4)],
+                                    [((0, 2), (4, 9), (0, 4), (7, 9)), (0, 2, 1, 3)]))
+def test_multilevel_arg_sort(l, ref):
     indices = mda.coordinates.chain.multi_level_argsort(l)
-    sl = np.array(l)[indices]
-    assert_equal(sl, sorted(l))
+    assert_array_equal(indices, ref)
+
+@pytest.mark.parametrize('l, ref', ([((0, 4), (3, 6), (6, 9)), (0, 1, 2)],
+                                    [((0, 3), (3, 4), (4, 7)), (0, 1, 2)],
+                                    [((0, 3), (3, 5), (4, 7)), (0, 1, 2)],
+                                    [((0, 3), (0, 4)), (1,)],
+                                    [((0, 3), (0, 3)), (1,)]))
+def test_filter_times(l, ref):
+    indices = mda.coordinates.chain.filter_times(l, dt=1)
+    assert_array_equal(indices, ref)
