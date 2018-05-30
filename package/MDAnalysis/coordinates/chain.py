@@ -94,9 +94,20 @@ def filter_times(times, dt):
     indices of times to used with overlaps removed
 
     """
-    # check for two because we have a start and a beginning
+    # Special cases
+    if len(times) == 1:
+        return [0, ]
+    elif len(times) == 2:
+        if times[0][0] < times[1][0]:
+            return [0, 1]
+        elif np.allclose(times[0][0], times[1][0]):
+            return [1, ]
+        else:
+            return [0, ]
     if np.unique(times).size == 2:
         return [len(times) - 1, ]
+
+    # more then 2 unique time entries
 
     # special case first times are equal
     if not np.allclose(times[0][0], times[1][0]):
@@ -114,7 +125,7 @@ def filter_times(times, dt):
             used_idx.append(i + offset)
 
     # take care of first special case
-    if len(times) > 2 and (times[-2][1] <= times[-1][1]):
+    if (times[-2][1] <= times[-1][1]):
         used_idx.append(len(times) - (2-offset))
 
     return used_idx
@@ -266,6 +277,8 @@ class ChainReader(base.ProtoReader):
             # rebuild lookup table
             sf = [0, ]
             n_frames = 0
+            print(len(list(zip(self.readers[:-1], self.readers[1:]))))
+            print(len(self.readers[:-1]))
             for r1, r2 in zip(self.readers[:-1], self.readers[1:]):
                 r2[0], r1[0]
                 start_time = r2.time
@@ -276,8 +289,9 @@ class ChainReader(base.ProtoReader):
                     sf.append(sf[-1])
                     continue
 
-                if start_time > r1.n_frames * dt:
-                    raise RuntimeError("Missing frame in continuous chain")
+                print(start_time, n_frames, dt)
+                if start_time > n_frames * dt:
+                    warnings.warn("Missing frame in continuous chain", UserWarning)
                 # find end where trajectory was restarted from
                 for ts in r1[::-1]:
                     if ts.time < start_time:

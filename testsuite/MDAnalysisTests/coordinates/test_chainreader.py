@@ -200,7 +200,7 @@ class TestChainReaderContinuous(object):
 
     # [0 1 2 3] [5 6 7 8 9]
     def test_missing_frame(self, top, trajs):
-        with pytest.raises(RuntimeError):
+        with pytest.warns(UserWarning):
             mda.Universe(top, [trajs[0], trajs[-1]], continuous=True)
 
     # repeated [0 1 2 3]
@@ -229,7 +229,10 @@ def test_multilevel_arg_sort(l, ref):
                                     [((0, 3), (3, 4), (4, 7)), (0, 1, 2)],
                                     [((0, 3), (3, 5), (4, 7)), (0, 1, 2)],
                                     [((0, 3), (0, 4)), (1,)],
-                                    [((0, 3), (0, 3)), (1,)]))
+                                    [((0, 3), (0, 3)), (1,)],
+                                    [((1, 3), (0, 4)), (0,)],
+                                    [((0, 3), ), (0, )],
+                                    [((0, 3), (5, 9)), (0, 1)]))
 def test_filter_times(l, ref):
     indices = mda.coordinates.chain.filter_times(l, dt=1)
     assert_array_equal(indices, ref)
