@@ -76,7 +76,7 @@ class CRDReader(base.SingleFrameReaderBase):
                 # process coordinates
                 try:
                     if extended:
-                        coords_list.append(np.array(line[45:100].split()[0:3], dtype=float))
+                        coords_list.append(np.array(line[44:100].split()[0:3], dtype=float))
                     else:
                         coords_list.append(np.array(line[20:50].split()[0:3], dtype=float))
                 except:
