@@ -477,7 +477,10 @@ class PDBWriter(base.WriterBase):
     }
     format = ['PDB', 'ENT']
     units = {'time': None, 'length': 'Angstrom'}
-    pdb_coor_limits = {"min": -999.9995, "max": 9999.9995}
+    #pdb_coor_limits = {"min": -999.9995, "max": 9999.9995}
+    pdb_coor_limits = {"min": -9999.9995, "max": 9999.9995}
+    # min increased 10 times for bigger models
+
     #: wrap comments into REMARK records that are not longer than
     # :attr:`remark_max_length` characters.
     remark_max_length = 66
